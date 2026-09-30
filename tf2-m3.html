@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<!-- build: 2026092901 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 3 &mdash; Sensitive Data | Terraform: Intermediate to Advanced</title>
+<style>
+:root{
+  --ink:#1B2124; --ink-2:#495259; --rule:#DFE3DE; --paper:#F6F7F5; --panel:#FFFFFF;
+  --level:#1a6eb5; --level-soft:#E8F1FA;
+  --lens:#B0721A; --lens-soft:#FBF4E7;
+  --verify:#41525F; --verify-soft:#EEF2F4;
+  --caution:#9E3025; --caution-soft:#FBEDEB;
+  --ok:#2E6B34; --ok-soft:#E9F2E9;
+  --serif: Charter,"Bitstream Charter","Iowan Old Style",Georgia,serif;
+  --sans: ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono: ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:0 22px 90px}
+a{color:var(--level);text-decoration-thickness:1px;text-underline-offset:2px}
+.masthead{border-bottom:1px solid var(--rule);background:var(--panel)}
+.masthead .wrap{padding-top:38px;padding-bottom:30px}
+.crumb{font-family:var(--sans);font-size:13px;color:var(--ink-2);margin:0 0 14px}
+.who{float:right;font-size:12.5px;color:var(--ink-2)}
+.back{color:var(--level);text-decoration:none;font-weight:600}
+.back:hover{text-decoration:underline}
+.signout{background:none;border:0;color:var(--level);font-size:12.5px;cursor:pointer;
+  text-decoration:underline;font-family:inherit;padding:0}
+.chip{display:inline-block;font-family:var(--sans);font-size:12px;letter-spacing:.02em;
+  color:#fff;background:var(--level);border-radius:3px;padding:3px 9px;margin-right:8px}
+h1{font-family:var(--sans);font-weight:640;font-size:31px;line-height:1.2;margin:0 0 10px;letter-spacing:-.015em}
+.deck{font-size:18px;color:var(--ink-2);margin:0;max-width:64ch}
+.facts{display:flex;flex-wrap:wrap;gap:22px;margin-top:22px;padding-top:18px;border-top:1px solid var(--rule);
+  font-family:var(--sans);font-size:13.5px;color:var(--ink-2)}
+.facts b{display:block;color:var(--ink);font-weight:600}
+.progress{position:sticky;top:0;z-index:20;background:rgba(246,247,245,.94);
+  backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+.progress .wrap{display:flex;align-items:center;gap:14px;padding-top:9px;padding-bottom:9px}
+.bar{flex:1;height:4px;background:var(--rule);border-radius:2px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--level);transition:width .25s ease}
+.count{font-family:var(--sans);font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+h2{font-family:var(--sans);font-weight:640;font-size:22px;line-height:1.25;margin:0;letter-spacing:-.01em}
+h3{font-family:var(--sans);font-weight:620;font-size:16px;margin:26px 0 8px}
+p{margin:0 0 14px;max-width:72ch}
+ul,ol{max-width:72ch;padding-left:22px}
+li{margin-bottom:7px}
+section.stage{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:26px 28px;margin:26px 0}
+.stage-head{display:flex;gap:16px;align-items:baseline;margin-bottom:6px}
+.num{font-family:var(--mono);font-size:14px;color:var(--level);border:1px solid var(--level);
+  border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;
+  justify-content:center;align-self:flex-start;margin-top:2px}
+.num.ok{background:var(--level);color:#fff}
+.goal{font-family:var(--sans);font-size:14px;color:var(--ink-2);margin:0 0 18px 46px}
+.stage-body{margin-left:46px}
+.callout{border-radius:5px;padding:14px 16px;margin:0 0 16px;font-size:15.5px}
+.callout p{margin:0;max-width:66ch}
+.callout p+p{margin-top:9px}
+.callout ul{margin:6px 0 0;font-size:15px}
+.callout .tag{font-family:var(--sans);font-size:12.5px;font-weight:640;display:block;margin-bottom:5px}
+.lens{background:var(--lens-soft);border-left:3px solid var(--lens)}
+.lens .tag{color:var(--lens)}
+.verify{background:var(--verify-soft);border-left:3px dashed var(--verify)}
+.verify .tag{color:var(--verify)}
+.caution{background:var(--caution-soft);border-left:3px solid var(--caution)}
+.caution .tag{color:var(--caution)}
+.good{background:var(--ok-soft);border-left:3px solid var(--ok)}
+.good .tag{color:var(--ok)}
+.done{background:var(--level-soft);border-radius:5px;padding:16px 18px;margin-top:26px}
+.done .tag{font-family:var(--sans);font-size:12.5px;font-weight:640;color:var(--level);display:block;margin-bottom:8px}
+.done label{display:flex;gap:11px;align-items:flex-start;font-size:15.5px;cursor:pointer;margin:0}
+.done input{margin-top:6px;accent-color:var(--level);width:16px;height:16px;flex:none}
+.done label.checked{color:var(--ink-2)}
+.done .sync{font-family:var(--sans);font-size:12px;color:var(--ink-2);margin:9px 0 0 27px;min-height:15px}
+.done input:disabled{accent-color:#B9C2BA}
+.done label.locked{color:#8D979C;cursor:not-allowed}
+.orient{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:26px 28px;margin:26px 0}
+.secdone{display:flex;gap:10px;align-items:center;font-family:var(--sans);font-size:14px;color:var(--ink-2);
+  border-top:1px solid var(--rule);margin-top:22px;padding-top:14px;cursor:pointer}
+.secdone input{accent-color:var(--level);width:16px;height:16px;flex:none}
+.secdone.ticked{color:var(--level);font-weight:600}
+section.stage.check{border-color:#C9DAEA;background:#FCFDFE}
+.gstem{font-weight:600;margin:0 0 12px}
+.gq{margin-bottom:26px}
+.gopt{display:flex;gap:11px;align-items:flex-start;font-size:16px;margin-bottom:8px;cursor:pointer;max-width:72ch}
+.gopt input{margin-top:6px;accent-color:var(--level);width:16px;height:16px;flex:none}
+.gopt input:disabled+span{color:var(--ink-2)}
+.gfb{margin-top:12px}
+.gfb .callout{margin-bottom:0}
+.gactions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.gstate{font-family:var(--sans);font-size:13px;color:var(--ink-2)}
+button.pbtn{border:0;cursor:pointer;font-family:var(--sans)}
+.recap{font-family:var(--sans);font-size:15px;color:var(--ink-2);border-top:1px solid var(--rule);
+  margin-top:24px;padding-top:16px}
+.recap b{color:var(--ink);font-weight:620}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:34px 0 0;flex-wrap:wrap}
+.pbtn{display:inline-block;background:var(--level);color:#fff;text-decoration:none;
+  font-family:var(--sans);font-size:14.5px;font-weight:600;padding:11px 22px;border-radius:8px}
+.pbtn:hover{filter:brightness(1.08)}
+.pbtn.ghost{background:none;color:var(--level);border:1.5px solid var(--level)}
+.pbtn.off,.pbtn:disabled{background:none;color:#A9B2B6;border:1.5px solid var(--rule);pointer-events:none}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:0 0 16px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--sans);font-size:13px;font-weight:620}
+td code,li code,p code{font-family:var(--mono);font-size:.86em;background:#EEF2F4;border-radius:3px;padding:1px 5px}
+.fname{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);margin:0 0 4px}
+pre.code{background:#122130;color:#E3EAF1;font-family:var(--mono);font-size:13.5px;line-height:1.55;
+  padding:14px 16px;border-radius:6px;overflow-x:auto;margin:0 0 16px;white-space:pre}
+pre.code .c{color:#8FA3B5}
+pre.term{background:#1B2124;color:#D8E0D9}
+figure{margin:0 0 22px}
+figcaption{font-family:var(--sans);font-size:12.5px;color:var(--ink-2);margin-top:8px}
+svg{width:100%;height:auto;display:block}
+footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
+  font-family:var(--sans);font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:620px){
+  body{font-size:16px}
+  .stage-body,.goal{margin-left:0}
+  .stage-head{gap:12px}
+  section.stage,.orient{padding:20px 18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <p class="crumb"><span id="who" class="who"></span><a class="back" href="index.html?v=2026092901">&#8592; Dashboard</a> &middot; SF Knowledge Hub &middot; Terraform: Intermediate to Advanced</p>
+    <p><span class="chip">Module 3 of 8</span></p>
+    <h1>Sensitive Data</h1>
+    <p class="deck">Keep passwords and keys out of output, out of Git and, with ephemeral values and write-only arguments, out of state altogether.</p>
+    <div class="facts"><div><b>Time</b>About 3 hours</div><div><b>Sections</b>4, each with a finish box</div><div><b>Exam objectives</b>4h</div><div><b>Completion</b>All sections, check questions, then the box at the end</div></div>
+  </div>
+</header>
+
+<div class="progress"><div class="wrap">
+  <div class="bar"><span id="fill"></span></div>
+  <div class="count" id="count">Loading progress&hellip;</div>
+</div></div>
+
+<div class="wrap">
+
+<div class="orient">
+<h2>Before you begin</h2>
+<p>In Course 1 you found a password in plain text inside <code>terraform.tfstate</code>, even though the output hid it. This module covers the ways to handle secrets properly: marking values sensitive, getting secrets from Vault, and the newer <b>ephemeral values</b> and <b>write-only arguments</b> that are never stored at all. The last two were added in version 004 of the exam.</p>
+</div>
+
+<section class="stage" id="sec-1">
+  <div class="stage-head"><div class="num" id="num-1">1</div><h2>Sensitive values and where secrets leak</h2></div>
+  <p class="goal">What sensitive = true protects, and what it does not.</p>
+  <div class="stage-body">
+
+<p>A secret can leak from a Terraform project in five places: the <code>.tf</code> files, <code>.tfvars</code> files, command output, logs and the state file.</p>
+<table>
+<tr><th>Where</th><th>How to protect it</th></tr>
+<tr><td><code>.tf</code> and <code>.tfvars</code> files in Git</td><td>Never write secrets in them. Pass them through <code>TF_VAR_</code> environment variables, a secrets manager or Vault.</td></tr>
+<tr><td>Plan and apply output</td><td>Mark variables and outputs <code>sensitive = true</code>. Terraform then shows <code>(sensitive value)</code>.</td></tr>
+<tr><td>Logs from CI pipelines</td><td>Same as above; also avoid <code>TF_LOG=TRACE</code> in shared pipelines.</td></tr>
+<tr><td>The state file</td><td>Store state in an encrypted remote backend with restricted access (Module 5). Use ephemeral values and write-only arguments so the secret is never written.</td></tr>
+</table>
+<pre class="code">variable &quot;db_password&quot; {
+  type      = string
+  sensitive = true
+}
+
+output &quot;db_endpoint&quot; {
+  value = aws_db_instance.main.endpoint
+}
+
+output &quot;db_password&quot; {
+  value     = var.db_password
+  sensitive = true    # required: an output that uses a sensitive value must say so
+}</pre>
+<ul>
+<li>Sensitivity spreads: any expression built from a sensitive value is also sensitive.</li>
+<li>The <code>sensitive()</code> function marks a value as sensitive; <code>nonsensitive()</code> removes the mark when you are sure it is safe.</li>
+<li>Many provider attributes are already marked sensitive, such as a database <code>password</code>.</li>
+</ul>
+<div class="callout caution"><span class="tag">Watch out</span><p><code>sensitive = true</code> only hides values on screen. The value is still stored in plain text in the state and in saved plan files.</p></div>
+    <label class="secdone" id="sd-1"><input type="checkbox" class="sec" data-sec="1" disabled> I have finished this section</label>
+  </div>
+</section>
+<section class="stage" id="sec-2">
+  <div class="stage-head"><div class="num" id="num-2">2</div><h2>Secrets from Vault</h2></div>
+  <p class="goal">Read secrets at run time instead of storing them in files.</p>
+  <div class="stage-body">
+
+<p>HashiCorp Vault stores secrets centrally, controls who can read them and records every read. The <code>hashicorp/vault</code> provider lets Terraform read a secret when it runs, so the secret never sits in your files or in Git.</p>
+<pre class="code">provider &quot;vault&quot; {
+  address = &quot;http://127.0.0.1:8200&quot;    # usually set with VAULT_ADDR instead
+<span class="c">  # token comes from the VAULT_TOKEN environment variable</span>
+}
+
+data &quot;vault_kv_secret_v2&quot; &quot;db&quot; {
+  mount = &quot;secret&quot;
+  name  = &quot;app/db&quot;
+}
+
+<span class="c"># data.vault_kv_secret_v2.db.data[&quot;password&quot;]</span></pre>
+<p>This keeps the secret out of your files, but a <b>data source</b> result is saved in state. To keep it out of state as well, read it as an <b>ephemeral resource</b> instead (next section).</p>
+<p>Vault can also issue <b>dynamic secrets</b>: short-lived AWS credentials or database users created on request and removed when they expire. A leaked dynamic secret is only useful for a short time.</p>
+
+    <label class="secdone" id="sd-2"><input type="checkbox" class="sec" data-sec="2" disabled> I have finished this section</label>
+  </div>
+</section>
+<section class="stage" id="sec-3">
+  <div class="stage-head"><div class="num" id="num-3">3</div><h2>Ephemeral values and write-only arguments</h2></div>
+  <p class="goal">Values that are used during a run and never stored.</p>
+  <div class="stage-body">
+
+<p>Terraform 1.10 and 1.11 added ways to use a secret without saving it in the plan or state.</p>
+<table>
+<tr><th>Feature</th><th>What it is</th></tr>
+<tr><td><code>ephemeral</code> resource block</td><td>Reads or creates a value for the length of one run, such as a secret from Vault or AWS Secrets Manager. Its values are never stored in the plan or state. Referenced as <code>ephemeral.&lt;type&gt;.&lt;name&gt;</code>.</td></tr>
+<tr><td><code>ephemeral = true</code> on a variable</td><td>The variable's value is available during the run but not stored.</td></tr>
+<tr><td><code>ephemeral = true</code> on an output</td><td>Allowed in child modules, to pass an ephemeral value up to the caller.</td></tr>
+<tr><td>Write-only argument</td><td>A resource argument that accepts a value, usually ephemeral, sends it to the provider and never stores it. Their names end in <code>_wo</code>, such as <code>password_wo</code>.</td></tr>
+</table>
+<pre class="code"><span class="c"># Read the secret for this run only</span>
+ephemeral &quot;vault_kv_secret_v2&quot; &quot;db&quot; {
+  mount = &quot;secret&quot;
+  name  = &quot;app/db&quot;
+}
+
+resource &quot;aws_db_instance&quot; &quot;main&quot; {
+  identifier          = &quot;app-db&quot;
+  engine              = &quot;postgres&quot;
+  instance_class      = &quot;db.t4g.micro&quot;
+  allocated_storage   = 20
+  username            = &quot;app&quot;
+  skip_final_snapshot = true
+
+<span class="c">  # Write-only: sent to AWS, never saved in state</span>
+  password_wo         = ephemeral.vault_kv_secret_v2.db.data[&quot;password&quot;]
+  password_wo_version = 1    # increase this number to send a new password
+}</pre>
+<ul>
+<li>Because Terraform does not store a write-only value, it cannot tell when it changes. Each write-only argument has a matching <code>_version</code> argument; change it to make Terraform send the value again.</li>
+<li>Ephemeral values can only be used where ephemeral values are allowed: other ephemeral blocks, write-only arguments, provider configuration, locals and ephemeral variables and outputs. Using one in a normal argument is an error.</li>
+</ul>
+<div class="callout lens"><span class="tag">Exam tip</span><p>A data source reads a value and stores it in state. An ephemeral resource reads a value and never stores it. A write-only argument accepts a value and never stores it.</p></div>
+    <label class="secdone" id="sd-3"><input type="checkbox" class="sec" data-sec="3" disabled> I have finished this section</label>
+  </div>
+</section>
+<section class="stage" id="sec-4">
+  <div class="stage-head"><div class="num" id="num-4">4</div><h2>Lab: a secret that never reaches state</h2></div>
+  <p class="goal">Run a local Vault server, read a secret ephemerally, and store it through a write-only argument.</p>
+  <div class="stage-body">
+
+<h3>1. Start a Vault dev server</h3>
+<p>Install Vault the same way you installed Terraform (<code>brew install hashicorp/tap/vault</code> or <code>sudo apt install vault</code>). In one terminal, start a dev server. It keeps data in memory only and is for learning, never for real secrets.</p>
+<pre class="code term">vault server -dev -dev-root-token-id=&quot;root&quot;</pre>
+<p>In a second terminal:</p>
+<pre class="code term">export VAULT_ADDR=&quot;http://127.0.0.1:8200&quot;
+export VAULT_TOKEN=&quot;root&quot;
+vault kv put secret/app/db password=&quot;Lab-Only-Pa55word&quot;
+vault kv get secret/app/db</pre>
+<h3>2. The configuration</h3>
+<p>Instead of a database, which takes a long time to create, this lab stores the password in AWS Secrets Manager through its write-only argument <code>secret_string_wo</code>.</p>
+<p class="fname">tf2-lab-m3/main.tf</p><pre class="code">terraform {
+  required_version = &quot;&gt;= 1.12.0&quot;
+  required_providers {
+    aws    = { source = &quot;hashicorp/aws&quot;, version = &quot;~&gt; 6.0&quot; }
+    vault  = { source = &quot;hashicorp/vault&quot;, version = &quot;&gt;= 4.7&quot; }
+    random = { source = &quot;hashicorp/random&quot;, version = &quot;~&gt; 3.6&quot; }
+  }
+}
+
+provider &quot;aws&quot; {
+  region = &quot;us-east-1&quot;
+  default_tags { tags = { Project = &quot;tf-course-2&quot;, Lab = &quot;m3&quot; } }
+}
+
+provider &quot;vault&quot; {}   # uses VAULT_ADDR and VAULT_TOKEN
+
+ephemeral &quot;vault_kv_secret_v2&quot; &quot;db&quot; {
+  mount = &quot;secret&quot;
+  name  = &quot;app/db&quot;
+}
+
+resource &quot;random_pet&quot; &quot;name&quot; {}
+
+resource &quot;aws_secretsmanager_secret&quot; &quot;db&quot; {
+  name                    = &quot;tf2-m3-db-${random_pet.name.id}&quot;
+  recovery_window_in_days = 0   # delete at once on destroy (lab only)
+}
+
+resource &quot;aws_secretsmanager_secret_version&quot; &quot;db&quot; {
+  secret_id                = aws_secretsmanager_secret.db.id
+  secret_string_wo         = ephemeral.vault_kv_secret_v2.db.data[&quot;password&quot;]
+  secret_string_wo_version = 1
+}
+
+output &quot;secret_name&quot; {
+  value = aws_secretsmanager_secret.db.name
+}</pre><pre class="code term">cd tf2-lab-m3
+terraform init
+terraform apply
+grep -c &quot;Lab-Only-Pa55word&quot; terraform.tfstate     # 0: the password is not in state
+aws secretsmanager get-secret-value --secret-id &quot;$(terraform output -raw secret_name)&quot; --query SecretString</pre>
+<h3>3. Change the secret</h3>
+<p>Run <code>vault kv put secret/app/db password="Lab-Only-New-Pa55"</code>, then <code>terraform plan</code>. Terraform reports no changes, because it never stored the old value to compare with. Change <code>secret_string_wo_version</code> to <code>2</code> and plan again: now it sends the new value. Apply, check it with the <code>aws</code> command above, then clean up.</p>
+<pre class="code term">terraform destroy
+<span class="c"># stop the Vault dev server with Ctrl+C in the first terminal</span></pre><div class="callout verify"><span class="tag">Check your work</span><ul><li><code>grep -c</code> returned 0 for the state file</li><li>AWS Secrets Manager returned the password from Vault</li><li>The new password was only sent after you changed <code>secret_string_wo_version</code></li></ul></div>
+    <label class="secdone" id="sd-4"><input type="checkbox" class="sec" data-sec="4" disabled> I have finished this section</label>
+  </div>
+</section>
+
+<section class="stage check">
+  <div class="stage-head"><div class="num">?</div><h2>Check your understanding</h2></div>
+  <p class="goal">Answer both questions correctly to unlock the completion box. You can try as many times as you need.</p>
+  <div class="stage-body">
+    <div class="gq" data-i="0">
+      <p class="gstem">A variable is marked sensitive = true. Which statement is correct?</p>
+      <label class="gopt"><input type="radio" name="g0" value="0"> <span>It is hidden in command output but still stored in the state file</span></label>
+      <label class="gopt"><input type="radio" name="g0" value="1"> <span>It is encrypted in the state file with a key that Terraform manages</span></label>
+      <label class="gopt"><input type="radio" name="g0" value="2"> <span>It is never stored in the state file or in any saved plan file</span></label>
+      <label class="gopt"><input type="radio" name="g0" value="3"> <span>It can only be set through a TF_VAR_ environment variable</span></label>
+      <div class="gfb" id="gfb-0"></div>
+    </div>
+    <div class="gq" data-i="1">
+      <p class="gstem">You change the value sent to a write-only argument, but terraform plan shows no changes. Why?</p>
+      <label class="gopt"><input type="radio" name="g1" value="0"> <span>Write-only arguments are only read once, during terraform init</span></label>
+      <label class="gopt"><input type="radio" name="g1" value="1"> <span>Terraform does not store the value, so it cannot see it changed</span></label>
+      <label class="gopt"><input type="radio" name="g1" value="2"> <span>The provider rejected the new value without reporting it to you</span></label>
+      <label class="gopt"><input type="radio" name="g1" value="3"> <span>Ephemeral values are cached for 24 hours between runs</span></label>
+      <div class="gfb" id="gfb-1"></div>
+    </div>
+    <div class="gactions"><button class="pbtn" id="gcheck">Check answers</button><span class="gstate" id="gstate"></span></div>
+    <p class="recap"><b>Module recap.</b> sensitive hides values on screen but not in state. Vault keeps secrets out of files. Ephemeral resources and variables are used during a run and never stored, and write-only arguments pass such values to a provider without saving them; change the _wo_version argument to resend.</p>
+  </div>
+</section>
+
+<div class="done">
+  <span class="tag">Completion</span>
+  <label id="lbl"><input type="checkbox" id="cmplt" disabled> I have finished Module 3: Sensitive Data.</label>
+  <p class="sync" id="sync"></p>
+</div>
+
+<div class="pager">
+  <a class="pbtn ghost" href="tf2-m2.html?v=2026092901">&#8592; Module 2</a>
+  <a class="pbtn off" id="nextbtn" href="tf2-m4.html?v=2026092901">Module 4 &#8594;</a>
+</div>
+
+<footer>
+  <div>SF Knowledge Hub &middot; Terraform: Intermediate to Advanced &middot; Module 3 of 8</div>
+  <div>build 2026092901</div>
+</footer>
+
+</div>
+
+<!-- SF auth gate: Google SSO or email/password sign-in. -->
+<script>
+(function () {
+  /* Live config for sfcertification-grafana. */
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-I-IOCq2fCwa471fsD5xOn6SYQSBDp7Q",
+    authDomain: "sfcertification-grafana.firebaseapp.com",
+    projectId: "sfcertification-grafana",
+    storageBucket: "sfcertification-grafana.firebasestorage.app",
+    messagingSenderId: "227322696511",
+    appId: "1:227322696511:web:12e7ced7dd3d45fa06798a"
+  };
+  const ALLOWED_DOMAIN = "sourcefuse.com";
+  /* Admins: always allowed in, without a nomination. */
+  const ADMINS = ["jv.ravichandran@sourcefuse.com", "noushin.khan@sourcefuse.com"];
+
+  /* `courses` document id for this course. Nominations are read from
+     courses/{COURSE_ID}/nominations/{email}, managed in the SF Knowledge Hub. */
+  const COURSE_ID = "REPLACE_WITH_COURSE_ID";
+
+  /* True when the page is shown inside another page (the SF Knowledge Hub). */
+  const IN_FRAME = (function(){ try { return window.self !== window.top; } catch (_) { return true; } })();
+
+  let auth, GoogleProvider, signInPopup, signInEmail, onAuth, signOutFn, setPersist, localPersist, readNomination;
+  let readyCb = null;
+
+  async function initFirebase() {
+    const appMod  = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(firebaseConfig);
+    auth = authMod.getAuth(app);
+    GoogleProvider = authMod.GoogleAuthProvider;
+    signInPopup    = (p) => authMod.signInWithPopup(auth, p);
+    signInEmail    = (e, pw) => authMod.signInWithEmailAndPassword(auth, e, pw);
+    onAuth         = (cb) => authMod.onAuthStateChanged(auth, cb);
+    signOutFn      = () => authMod.signOut(auth);
+    setPersist     = authMod.setPersistence;
+    localPersist   = authMod.browserLocalPersistence;
+    try { await setPersist(auth, localPersist); } catch (_) {}
+    const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const db = fsMod.getFirestore(app);
+    readNomination = (email) => fsMod.getDoc(fsMod.doc(db, "courses", COURSE_ID, "nominations", email));
+  }
+
+  function styleTag(){return `<style>
+    .sf-auth-backdrop{position:fixed;inset:0;background:rgba(16,38,60,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+    .sf-auth-card{background:#fff;border-radius:22px;padding:42px 36px 38px;width:100%;max-width:420px;box-shadow:0 12px 40px rgba(10,30,55,.25);text-align:center;font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    .sf-auth-badge{display:inline-block;background:var(--level,#1a6eb5);color:#fff;font-weight:700;font-size:12px;padding:4px 11px;border-radius:14px;margin-bottom:14px}
+    .sf-auth-card h2{margin:0 0 12px;font-size:19px;font-weight:700;line-height:1.3;color:#15212d;font-family:inherit}
+    .sf-auth-sub{margin:0 auto 26px;max-width:330px;color:#5e6b79;font-size:14.5px;line-height:1.6}
+    .sf-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#366db0;color:#fff;border:0;border-radius:9px;padding:15px;font-size:15.5px;font-weight:600;cursor:pointer;font-family:inherit}
+    .sf-btn:hover{background:#2e5f9b}
+    .sf-btn svg{width:19px;height:19px;flex:none}
+    .sf-or{margin:20px 0;color:#9da7b2;font-size:11.5px;font-weight:500;letter-spacing:.14em}
+    .sf-inp{display:block;width:100%;box-sizing:border-box;border:1.5px solid #dfe5eb;border-radius:9px;padding:13px 14px;font-size:15px;margin:0 0 9px;color:#15212d;background:#fff;font-family:inherit}
+    .sf-inp::placeholder{color:#757575}
+    .sf-inp:focus{outline:none;border-color:#366db0}
+    .sf-err{color:#b5341a;font-size:13px;margin-top:12px;min-height:16px;line-height:1.5}
+    .sf-frame{color:#5e6b79;font-size:12.5px;line-height:1.55;margin:14px 0 0}
+    .sf-frame a{color:#366db0}
+  </style>`;}
+
+  function signinHTML(){return `
+    <div class="sf-auth-backdrop" id="sf-auth"><div class="sf-auth-card">
+      <h2>Terraform: Intermediate to Advanced</h2>
+      <p class="sf-auth-sub">Sign in with your SourceFuse Google account to access the course and save your progress.</p>
+      <button class="sf-btn" id="sf-google" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21.35 11.1H12v3.2h5.35c-.5 2.5-2.6 3.9-5.35 3.9a6.2 6.2 0 1 1 4.1-10.85l2.4-2.4A9.6 9.6 0 1 0 12 21.6c5 0 9.6-3.6 9.6-9.6 0-.3 0-.6-.05-.9z"/></svg> Sign in with Google</button>
+      <div class="sf-or">OR</div>
+      <input class="sf-inp" id="sf-email" type="email" placeholder="you@sourcefuse.com" autocomplete="username">
+      <input class="sf-inp" id="sf-pass" type="password" placeholder="Password" autocomplete="current-password">
+      <button class="sf-btn" id="sf-email-btn" type="button">Sign in with email</button>
+      <div class="sf-err" id="sf-err"></div>
+      ${IN_FRAME ? '<p class="sf-frame">If the Google sign-in window does not open, <a href="' + location.href + '" target="_blank" rel="noopener">open the course in a new tab</a>, or use Sign in with email.</p>' : ''}
+    </div></div>`;}
+
+  function fail(m){ const e = document.getElementById("sf-err"); if (e) e.textContent = m; }
+  function validDomain(x){
+    if (typeof x !== "string") return false;
+    return x.toLowerCase().endsWith("@" + ALLOWED_DOMAIN);
+  }
+  /* Same check as the SF Knowledge Hub: this course's nominations document
+     for the email exists and is not marked nominated: false. */
+  async function isNominated(x){
+    if (typeof x !== "string") return false;
+    if (ADMINS.indexOf(x.toLowerCase()) !== -1) return true;
+    if (!readNomination) return false;
+    try {
+      const s = await readNomination(x.toLowerCase());
+      return s.exists() && s.data().nominated !== false;
+    } catch (e) {
+      console.log("[auth] nomination read failed:", e && e.message);
+      return false;
+    }
+  }
+  function showNotNominated(){
+    const card = document.getElementById("sf-auth");
+    if (!card) return;
+    card.style.display = "flex";
+    card.innerHTML = '<div class="sf-auth-card">'
+      + '<div class="sf-auth-badge">SF Knowledge Hub</div>'
+      + '<h2>You are not nominated to this course</h2>'
+      + '</div>';
+  }
+  function proceed(user){
+    const el = document.getElementById("sf-auth"); if (el) el.remove();
+    if (readyCb) readyCb(user, signOutFn);
+  }
+
+  function wireSignin(){
+    document.getElementById("sf-google").addEventListener("click", async () => {
+      fail("");
+      if (!signInPopup) return fail("Sign-in is still loading. Wait a moment and try again.");
+      const p = new GoogleProvider();
+      p.setCustomParameters({ hd: ALLOWED_DOMAIN });
+      try {
+        const r = await signInPopup(p);
+        const u = r && r.user;
+        const email = (u && u.email) || "";
+        if (!validDomain(email)) {
+          await signOutFn();
+          return fail("Sign in with your @" + ALLOWED_DOMAIN + " account.");
+        }
+        if (!(await isNominated(email))) return showNotNominated();
+        return proceed(u);
+      } catch (e) {
+        const code = e && e.code;
+        console.log("[auth] signInWithPopup failed; code:", code, "| message:", e && e.message);
+        if (code === "auth/popup-blocked")
+          return fail(IN_FRAME
+            ? "The sign-in window was blocked here. Open the course in a new tab using the link below, or use Sign in with email."
+            : "Your browser blocked the sign-in window. Allow pop-ups for this site, then try again.");
+        if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request")
+          return fail("Sign-in was closed before it finished. Try again.");
+        fail("Google sign-in couldn't complete. Try again, or contact the SF Knowledge Hub admin.");
+      }
+    });
+    document.getElementById("sf-email-btn").addEventListener("click", async () => {
+      fail("");
+      if (!signInEmail) return fail("Sign-in is still loading. Wait a moment and try again.");
+      const email = (document.getElementById("sf-email").value || "").trim().toLowerCase();
+      const pass  = document.getElementById("sf-pass").value || "";
+      if (!email || !pass) return fail("Enter your email and password.");
+      if (!validDomain(email)) return fail("Sign in with your @" + ALLOWED_DOMAIN + " account.");
+      try {
+        const r = await signInEmail(email, pass);
+        const u = r && r.user;
+        if (!(await isNominated((u && u.email) || email))) return showNotNominated();
+        return proceed(u);
+      } catch (e) {
+        const code = e && e.code;
+        console.log("[auth] signInWithEmailAndPassword failed; code:", code, "| message:", e && e.message);
+        if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found")
+          return fail("Incorrect email or password.");
+        fail("Sign-in failed. Try again, or contact the SF Knowledge Hub admin.");
+      }
+    });
+  }
+
+  async function mount(onReady){
+    readyCb = onReady;
+    document.head.insertAdjacentHTML("beforeend", styleTag());
+    document.body.insertAdjacentHTML("beforeend", signinHTML());
+    /* Hidden until onAuth reports no session. A signed-in nominated user
+       goes straight through without the overlay appearing at all. */
+    const authCard = document.getElementById("sf-auth");
+    if (authCard) authCard.style.display = "none";
+    try { await initFirebase(); }
+    catch (e) {
+      console.log("[auth] init failed:", e && e.message);
+      if (authCard) authCard.style.display = "flex";
+      fail("Sign-in service didn't load. Reload the page.");
+      return;
+    }
+    if (onAuth) onAuth(async (u) => {
+      if (!u) {
+        if (authCard) authCard.style.display = "flex";
+        return;
+      }
+      if (!validDomain(u.email)) {
+        await signOutFn();
+        if (authCard) authCard.style.display = "flex";
+        return fail("Sign in with your @" + ALLOWED_DOMAIN + " account.");
+      }
+      /* Signed in and on-domain, but not on the list. Do not sign them out
+         automatically: the session is shared with the SF Knowledge Hub and
+         dropping it would sign them out of the Hub too. */
+      if (!(await isNominated(u.email))) return showNotNominated();
+      proceed(u);
+    });
+    wireSignin();
+  }
+
+  window.SFAuth = { mount: mount };
+})();
+</script>
+
+<!-- Progress: localStorage written first, Firestore synced after. -->
+<script type="module">
+(function(){
+  /* `courses` document id for this course. Same value in every file of this course. */
+  var CP_COURSE_ID = "REPLACE_WITH_COURSE_ID";
+
+  var MODULE_KEYS = ["tf2-m1", "tf2-m2", "tf2-m3", "tf2-m4", "tf2-m5", "tf2-m6", "tf2-m7", "tf2-m8"];
+  var SECTION_TOTALS = {"tf2-m1": 4, "tf2-m2": 4, "tf2-m3": 4, "tf2-m4": 4, "tf2-m5": 4, "tf2-m6": 4, "tf2-m7": 4, "tf2-m8": 4};   /* sections per module */
+  var FB = "https://www.gstatic.com/firebasejs/10.12.2/";
+  var LS  = "sf-tf2:";                       /* module completion, lab, exam summary */
+  var LSS = "sf-tf2-sec:";                   /* section ticks */
+  var GK  = "sf-tf2-gate:";                  /* check-question gate */
+
+  var fs = null, db = null, cpRef = null, prRef = null, erRef = null,
+      user = null, courseObj = {}, examObj = null, ready = false;
+
+  function stamp(){
+    var p = function(n){ return String(n).padStart(2,"0"); };
+    var d = new Date();
+    return { date: d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()),
+             time: p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds()) };
+  }
+  /* Legacy progress/{uid} field for a module: tf2-m1 -> tf2_m1 */
+  function secField(mk){ return mk.replace(/-/g, "_"); }
+
+  /* ---- localStorage layer ---------------------------------------------- */
+  function jRead(k){ try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch(_) { return {}; } }
+  function jWrite(k, o){ try { localStorage.setItem(k, JSON.stringify(o)); } catch(_) {} }
+  function lsRead(){ return jRead(LS + user.uid); }
+  function lsWrite(o){ jWrite(LS + user.uid, o); }
+  function secRead(){ return jRead(LSS + user.uid); }
+  function secWrite(o){ jWrite(LSS + user.uid, o); }
+
+  function state(){
+    var o = lsRead();
+    return { modules: o.modules || {}, lab: o.lab || null, exam: o.exam || null, sections: secRead() };
+  }
+  function lsSetModule(mk, done){
+    var o = lsRead();
+    o.modules = o.modules || {};
+    if (done) { var t = stamp(); o.modules[mk] = { completedOn: t.date, completedAt: t.time }; }
+    else delete o.modules[mk];
+    lsWrite(o);
+    return state();
+  }
+  function isDone(st, mk){
+    var m = (st && st.modules || {})[mk];
+    return !!(m && m.completedOn);
+  }
+  function sectionsDone(st, mk){
+    var a = ((st && st.sections) || {})[mk] || [];
+    return a.length;
+  }
+
+  /* ---- Firestore layer --------------------------------------------------- */
+  function base(){ return { email: user.email, name: user.displayName || user.email, courses: {} }; }
+
+  function setModuleInProgress(mk){
+    if (!ready || !mk) return Promise.resolve();
+    if (courseObj.courseCompletedOn) return Promise.resolve();
+    if (isDone(courseObj, mk)) return Promise.resolve();
+    var needStart = !courseObj.courseStartedOn;
+    if (courseObj.moduleInProgress === mk && !needStart) return Promise.resolve();
+    var t = stamp();
+    var cu = { moduleInProgress: mk };
+    if (needStart) { cu.courseStartedOn = t.date; cu.courseStartedAt = t.time; }
+    var update = base(); update.courses[CP_COURSE_ID] = cu;
+    courseObj.moduleInProgress = mk;
+    if (needStart) courseObj.courseStartedOn = t.date;
+    return fs.setDoc(cpRef, update, { merge: true })
+      .catch(function(e){ console.error("[progress] moduleInProgress write failed", e); });
+  }
+
+  /* Read-then-merge completion write. */
+  function completeModule(mk){
+    if (!ready) return Promise.reject(new Error("offline"));
+    var t = stamp();
+    return fs.getDoc(cpRef).then(function(snap){
+      var data = snap.exists() ? (snap.data() || {}) : {};
+      var obj  = (data.courses || {})[CP_COURSE_ID] || {};
+      var existing = obj.modules || {};
+      var cu = { modules: {} };
+      if (!obj.courseStartedOn) { cu.courseStartedOn = t.date; cu.courseStartedAt = t.time; }
+      if (!(existing[mk] && existing[mk].completedOn)) cu.modules[mk] = { completedOn: t.date, completedAt: t.time };
+      var doneAfter = function(k){ return !!((existing[k] && existing[k].completedOn) || cu.modules[k]); };
+      if (MODULE_KEYS.every(doneAfter)) {
+        if (!obj.courseCompletedOn) { cu.courseCompletedOn = t.date; cu.courseCompletedAt = t.time; }
+        cu.moduleInProgress = null;
+      } else {
+        var next = null;
+        for (var i = 0; i < MODULE_KEYS.length; i++) { if (!doneAfter(MODULE_KEYS[i])) { next = MODULE_KEYS[i]; break; } }
+        cu.moduleInProgress = next;
+      }
+      var update = base(); update.courses[CP_COURSE_ID] = cu;
+      courseObj = Object.assign({}, obj, cu, { modules: Object.assign({}, existing, cu.modules) });
+      return fs.setDoc(cpRef, update, { merge: true });
+    });
+  }
+
+  /* Section tick: localStorage first, then progress/{uid}.tf2_mN (arrayUnion). */
+  function tickSection(mk, n){
+    var s = secRead();
+    var a = s[mk] || [];
+    if (a.indexOf(n) === -1) { a.push(n); a.sort(function(x,y){ return x-y; }); }
+    s[mk] = a; secWrite(s);
+    if (!ready) return Promise.reject(new Error("offline"));
+    var upd = {}; upd[secField(mk)] = fs.arrayUnion(n);
+    return fs.setDoc(prRef, upd, { merge: true });
+  }
+
+  /* Graded lab: the pasted plan and apply output, stored on the course object. */
+  function submitLab(plan, apply){
+    var t = stamp();
+    var lab = { planOutput: plan, applyOutput: apply, submittedOn: t.date, submittedAt: t.time };
+    var o = lsRead(); o.lab = { submittedOn: t.date, submittedAt: t.time }; lsWrite(o);
+    if (!ready) return Promise.reject(new Error("offline"));
+    var update = base(); update.courses[CP_COURSE_ID] = { lab: lab };
+    courseObj.lab = lab;
+    return fs.setDoc(cpRef, update, { merge: true });
+  }
+
+  /* Exam attempt: one attempt document + best-attempt summary. */
+  function recordExam(r){
+    var t = stamp();
+    var o = lsRead();
+    var prev = o.exam || {};
+    var attempts = Math.max(prev.attempts || 0, (examObj && examObj.attempts) || 0, r.attemptNumber);
+    var bestPassed = !!(prev.passed || (examObj && examObj.passed) || r.pass);
+    var bestPct = Math.max(prev.score || 0, (examObj && examObj.score) || 0, r.pct);
+    o.exam = { attempts: attempts, passed: bestPassed, score: bestPct, lastPct: r.pct, lastPass: r.pass,
+               submittedOn: t.date, submittedAt: t.time };
+    lsWrite(o);
+    if (!ready) return Promise.reject(new Error("offline"));
+
+    var attemptId = t.date + "_" + t.time.replace(/:/g, "");
+    var aRef = fs.doc(db, "courseExamResults", user.email, "courses", CP_COURSE_ID, "attempts", attemptId);
+    var body = {
+      email: user.email, name: user.displayName || user.email, courseId: CP_COURSE_ID,
+      attemptNumber: r.attemptNumber, correct: r.correct, total: r.total, pct: r.pct, pass: r.pass,
+      submittedAt: new Date().toISOString(), durationSeconds: r.durationSeconds, timeUp: r.timeUp,
+      detail: r.detail
+    };
+    return fs.setDoc(aRef, body).then(function(){
+      return fs.getDoc(erRef);
+    }).then(function(snap){
+      var cur = (snap.exists() ? (snap.data() || {})[CP_COURSE_ID] : null) || {};
+      var better = !cur.passed && (r.pass || (r.pct >= (cur.score || 0)));
+      var summary = {
+        attempts: Math.max((cur.attempts || 0) + 1, r.attemptNumber),
+        correct: better ? r.correct : cur.correct,
+        total: better ? r.total : cur.total,
+        score: better ? r.pct : cur.score,
+        passed: !!(cur.passed || r.pass),
+        timeTaken: better ? r.durationSeconds : cur.timeTaken,
+        timedOut: better ? r.timeUp : cur.timedOut,
+        submittedAt: better ? new Date().toISOString() : cur.submittedAt
+      };
+      examObj = summary;
+      var upd = { learnerEmail: user.email, learnerName: user.displayName || user.email };
+      upd[CP_COURSE_ID] = summary;
+      return fs.setDoc(erRef, upd, { merge: true });
+    });
+  }
+
+  /* ---- Boot ------------------------------------------------------------ */
+  async function start(u, moduleKey, onState){
+    user = u;
+    var local = state();
+    onState(local, false);                       /* paint from localStorage at once */
+    try {
+      var appMod  = await import(FB + "firebase-app.js");
+      fs          = await import(FB + "firebase-firestore.js");
+      var app = appMod.getApp();                 /* DEFAULT app, never a named one */
+      db    = fs.getFirestore(app);
+      cpRef = fs.doc(db, "courseProgress", user.uid);
+      prRef = fs.doc(db, "progress", user.uid);
+      erRef = fs.doc(db, "examResults", user.uid);
+
+      var cs = await fs.getDoc(cpRef);
+      if (cs.exists()) courseObj = ((cs.data() || {}).courses || {})[CP_COURSE_ID] || {};
+      var remoteSec = {};
+      try {
+        var ps = await fs.getDoc(prRef);
+        var pd = ps.exists() ? (ps.data() || {}) : {};
+        MODULE_KEYS.forEach(function(k){ if (Array.isArray(pd[secField(k)])) remoteSec[k] = pd[secField(k)]; });
+      } catch(e){ console.error("[progress] section read failed", e); }
+      try {
+        var es = await fs.getDoc(erRef);
+        examObj = es.exists() ? ((es.data() || {})[CP_COURSE_ID] || null) : null;
+      } catch(e){ console.error("[progress] exam read failed", e); }
+      ready = true;
+
+      /* Merge: anything complete in either store stays complete. */
+      var o = lsRead();
+      o.modules = Object.assign({}, local.modules || {}, courseObj.modules || {});
+      if (courseObj.lab) {
+        o.lab = { submittedOn: courseObj.lab.submittedOn, submittedAt: courseObj.lab.submittedAt };
+      }
+      if (examObj) {
+        var le = o.exam || {};
+        o.exam = { attempts: Math.max(le.attempts || 0, examObj.attempts || 0),
+                   passed: !!(le.passed || examObj.passed),
+                   score: Math.max(le.score || 0, examObj.score || 0),
+                   lastPct: le.lastPct, lastPass: le.lastPass,
+                   submittedOn: le.submittedOn, submittedAt: le.submittedAt };
+      }
+      lsWrite(o);
+      var sLocal = secRead(), pushSec = [];
+      MODULE_KEYS.forEach(function(k){
+        var a = (sLocal[k] || []).slice();
+        (remoteSec[k] || []).forEach(function(n){ if (a.indexOf(n) === -1) a.push(n); });
+        (sLocal[k] || []).forEach(function(n){ if ((remoteSec[k] || []).indexOf(n) === -1) pushSec.push([k, n]); });
+        if (a.length) { a.sort(function(x,y){ return x-y; }); sLocal[k] = a; }
+      });
+      secWrite(sLocal);
+      onState(state(), true);
+
+      /* Push anything localStorage had that Firestore did not. */
+      var pending = Object.keys(local.modules || {}).filter(function(k){ return !isDone(courseObj, k); });
+      for (var i = 0; i < pending.length; i++) {
+        try { await completeModule(pending[i]); } catch(e){ console.error("[progress] backfill failed", e); }
+      }
+      for (var j = 0; j < pushSec.length; j++) {
+        try { var upd = {}; upd[secField(pushSec[j][0])] = fs.arrayUnion(pushSec[j][1]); await fs.setDoc(prRef, upd, { merge: true }); }
+        catch(e){ console.error("[progress] section backfill failed", e); }
+      }
+      await setModuleInProgress(moduleKey);
+    } catch(e) {
+      console.error("[progress] Firestore unavailable, localStorage only:", e);
+      onState(state(), false);
+    }
+  }
+
+  /* ---- Redo -----------------------------------------------------------
+     Clears one module: completion, section ticks and check-question answers,
+     on this device and in Firestore. Exam attempts and the lab are records
+     and are left untouched.                                               */
+  function clearLocalModule(mk){
+    var o = lsRead(); if (o.modules) delete o.modules[mk]; lsWrite(o);
+    var s = secRead(); delete s[mk]; secWrite(s);
+    var g = jRead(GK + user.uid); delete g[mk]; jWrite(GK + user.uid, g);
+    return state();
+  }
+  function redoModule(mk){
+    if (!ready) return Promise.reject(new Error("offline"));
+    return fs.getDoc(cpRef).then(function(snap){
+      var data = snap.exists() ? (snap.data() || {}) : {};
+      var obj  = (data.courses || {})[CP_COURSE_ID] || {};
+      var existing = obj.modules || {};
+      var cu = { modules: {} };
+      cu.modules[mk] = fs.deleteField();
+      if (obj.courseCompletedOn) { cu.courseCompletedOn = fs.deleteField(); cu.courseCompletedAt = fs.deleteField(); }
+      var doneAfter = function(k){ return k !== mk && !!(existing[k] && existing[k].completedOn); };
+      var next = null;
+      for (var i = 0; i < MODULE_KEYS.length; i++) { if (!doneAfter(MODULE_KEYS[i])) { next = MODULE_KEYS[i]; break; } }
+      cu.moduleInProgress = next;
+      var update = base(); update.courses[CP_COURSE_ID] = cu;
+      var fresh = Object.assign({}, existing); delete fresh[mk];
+      courseObj = Object.assign({}, obj, { modules: fresh, moduleInProgress: next });
+      delete courseObj.courseCompletedOn; delete courseObj.courseCompletedAt;
+      var pr = {}; pr[secField(mk)] = fs.deleteField();
+      return Promise.all([fs.setDoc(cpRef, update, { merge: true }), fs.setDoc(prRef, pr, { merge: true })]);
+    });
+  }
+
+  window.SFProgress = {
+    start: start,
+    redo: redoModule,
+    clearLocalModule: clearLocalModule,
+    moduleKeys: MODULE_KEYS,
+    sectionTotals: SECTION_TOTALS,
+    isDone: isDone,
+    sectionsDone: sectionsDone,
+    read: function(){ return user ? state() : {}; },
+    setLocal: function(mk, done){ return lsSetModule(mk, done); },
+    sync: function(mk, done){
+      if (!ready) return Promise.reject(new Error("offline"));
+      return done ? completeModule(mk) : Promise.resolve();
+    },
+    tickSection: tickSection,
+    submitLab: submitLab,
+    recordExam: recordExam,
+    labRemote: function(){ return courseObj.lab || null; },
+    examRemote: function(){ return examObj; },
+    isReady: function(){ return ready; },
+    gateKey: GK,
+    courseId: function(){ return CP_COURSE_ID; }
+  };
+})();
+</script>
+
+<script type="module">
+(function(){
+  var MK = "tf2-m3";
+  var NSEC = 4;
+  var GATE = [{"answer": 0, "why": "sensitive only hides a value on screen. Ephemeral values and write-only arguments are the features that keep a value out of state."}, {"answer": 1, "why": "A write-only value is never saved, so there is nothing to compare. Change the matching _wo_version argument to send it again."}];
+  var P = window.SFProgress;
+  var KEYS = P.moduleKeys;
+
+  function gateRead(uid){ try { return JSON.parse(localStorage.getItem(P.gateKey + uid) || "{}"); } catch(_) { return {}; } }
+  function gateWrite(uid, o){ try { localStorage.setItem(P.gateKey + uid, JSON.stringify(o)); } catch(_) {} }
+
+  window.SFAuth.mount(async function(user, signOut){
+    document.getElementById('who').innerHTML =
+      (user.email || '') + ' <button class="signout" id="signout">Sign out</button>';
+    var so = document.getElementById('signout');
+    if (so && signOut) so.onclick = function(){ signOut().then(function(){ location.reload(); }); };
+
+    var box = document.getElementById('cmplt'), lbl = document.getElementById('lbl'),
+        sync = document.getElementById('sync'), nextbtn = document.getElementById('nextbtn'),
+        gcheck = document.getElementById('gcheck'), gstate = document.getElementById('gstate');
+    var gatePassed = false;
+
+    function showGateSatisfied(){
+      gatePassed = true;
+      GATE.forEach(function(gq, i){
+        var rs = document.querySelectorAll('input[name="g' + i + '"]');
+        if (rs[gq.answer]) rs[gq.answer].checked = true;
+        var fb = document.getElementById('gfb-' + i);
+        if (fb) fb.innerHTML = '<div class="callout good"><span class="tag">Correct</span><p>' + gq.why + '</p></div>';
+      });
+      document.querySelectorAll('.gq input[type=radio]').forEach(function(r){ r.disabled = true; });
+      if (gcheck) gcheck.style.display = 'none';
+      gstate.textContent = 'Check questions passed';
+    }
+
+    gcheck.addEventListener('click', function(){
+      var allRight = true, unanswered = 0;
+      GATE.forEach(function(gq, i){
+        var sel = document.querySelector('input[name="g' + i + '"]:checked');
+        var fb  = document.getElementById('gfb-' + i);
+        if (!sel) { unanswered++; allRight = false; fb.innerHTML = ''; return; }
+        var ok = parseInt(sel.value, 10) === gq.answer;
+        if (!ok) allRight = false;
+        fb.innerHTML = ok
+          ? '<div class="callout good"><span class="tag">Correct</span><p>' + gq.why + '</p></div>'
+          : '<div class="callout caution"><span class="tag">Not quite</span><p>Look at the module again and try once more.</p></div>';
+      });
+      if (unanswered) { gstate.textContent = 'Answer every question first.'; return; }
+      if (!allRight) { gstate.textContent = 'Try again.'; return; }
+      var gs = gateRead(user.uid); gs[MK] = true; gateWrite(user.uid, gs);
+      showGateSatisfied();
+      paint(P.read());
+    });
+
+    document.querySelectorAll('input.sec').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        if (!cb.checked) return;
+        var n = parseInt(cb.getAttribute('data-sec'), 10);
+        var pr = P.tickSection(MK, n);
+        paint(P.read());
+        pr.catch(function(e){
+          console.error('[progress] section sync failed', e);
+          sync.textContent = 'Saved on this device. It will sync to your SF record next time you open this page online.';
+        });
+      });
+    });
+
+    function paint(state){
+      var ticks = (state.sections || {})[MK] || [];
+      for (var i = 1; i <= NSEC; i++) {
+        var cb = document.querySelector('input.sec[data-sec="' + i + '"]');
+        var on = ticks.indexOf(i) !== -1;
+        cb.checked = on; cb.disabled = on;
+        document.getElementById('sd-' + i).classList.toggle('ticked', on);
+        document.getElementById('num-' + i).classList.toggle('ok', on);
+      }
+      var nDone = KEYS.filter(function(k){ return P.isDone(state, k); }).length;
+      var secCount = Math.min(ticks.length, NSEC);
+      document.getElementById('fill').style.width = (secCount / NSEC) * 100 + '%';
+      document.getElementById('count').textContent = 'This module: ' + secCount + ' of ' + NSEC
+        + ' sections \u00b7 Course: ' + nDone + ' of ' + KEYS.length + ' modules complete';
+
+      var done = P.isDone(state, MK);
+      if (!gatePassed && (done || gateRead(user.uid)[MK])) showGateSatisfied();
+      if (done) {
+        var m = (state.modules || {})[MK] || {};
+        box.checked = true; box.disabled = true;
+        lbl.classList.add('checked'); lbl.classList.remove('locked');
+        sync.textContent = 'Completed on ' + (m.completedOn || '') + (m.completedAt ? ' at ' + m.completedAt : '');
+        nextbtn.classList.remove('off');
+        return;
+      }
+      nextbtn.classList.add('off');
+      box.checked = false;
+      var allSec = secCount >= NSEC;
+      box.disabled = !(allSec && gatePassed);
+      lbl.classList.toggle('locked', box.disabled);
+      if (!allSec && !gatePassed) sync.textContent = 'To unlock: finish every section and pass the check questions.';
+      else if (!allSec) sync.textContent = 'To unlock: tick the finish box at the end of every section.';
+      else if (!gatePassed) sync.textContent = 'To unlock: pass the check questions above.';
+      else sync.textContent = '';
+    }
+
+    await P.start(user, MK, function(state){ paint(state); });
+
+    box.addEventListener('change', async function(){
+      if (!box.checked) return;
+      var state = P.setLocal(MK, true);          /* localStorage first */
+      paint(state);
+      sync.textContent = 'Saved on this device. Syncing\u2026';
+      try {
+        await P.sync(MK, true);
+        var m = (state.modules || {})[MK] || {};
+        sync.textContent = 'Completed on ' + (m.completedOn || '') + ' \u00b7 saved to your SF record';
+      } catch(e) {
+        console.error('[progress] sync failed', e);
+        sync.textContent = 'Saved on this device. It will sync to your SF record next time you open this page online.';
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
