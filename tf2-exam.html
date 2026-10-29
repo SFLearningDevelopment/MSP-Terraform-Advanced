@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026093001 -->
+<!-- build: 2026102902 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -129,7 +129,7 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
 <body>
 <header class="masthead">
   <div class="wrap">
-    <p class="crumb"><span id="who" class="who"></span><a class="back" href="index.html?v=2026093001">&#8592; Dashboard</a> &middot; SF Knowledge Hub &middot; Terraform: Intermediate to Advanced</p>
+    <p class="crumb"><span id="who" class="who"></span><a class="back" href="index.html?v=2026102902">&#8592; Dashboard</a> &middot; SF Knowledge Hub &middot; Terraform: Intermediate to Advanced</p>
     <p><span class="chip">Course 2 certification</span></p>
     <h1>Certification: exam and graded lab</h1>
     <p class="deck">Pass the exam and submit the graded lab. You can do the two parts in either order.</p>
@@ -152,7 +152,7 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
 <div class="orient" id="locked" hidden>
   <h2>Finish all eight modules first</h2>
   <p>The certification opens when every module is marked complete. You have <span id="lockcount">0</span> of 8 done.</p>
-  <p><a class="pbtn" href="index.html?v=2026093001">Back to the dashboard</a></p>
+  <p><a class="pbtn" href="index.html?v=2026102902">Back to the dashboard</a></p>
 </div>
 
 <div id="content" hidden>
@@ -186,7 +186,7 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
   <div class="stage-head"><div class="num">B</div><h2>Graded lab</h2></div>
   <p class="goal">Build a small network and web server from a written brief, and submit the output for review.</p>
   <div class="stage-body">
-    <div class="callout verify"><span class="tag">Your lab status</span><p id="labstatustext">&ndash;</p></div>
+    <div class="callout verify" id="labstatus"><span class="tag">Your lab status</span><p id="labstatustext">&ndash;</p><p id="labcomment" hidden style="white-space:pre-wrap"></p><p id="labnext" hidden></p></div>
 
 <p>You start with a flat configuration that keeps its state on your computer. Your job is to make it ready for a team: move its state to S3 with locking, reorganise it into a module without replacing anything, and adopt a bucket that was created by hand. Use the module labs for reference.</p>
 <h3>Starting configuration</h3>
@@ -264,13 +264,13 @@ terraform apply tfplan          # copy this output into box 2</pre>
 </div>
 
 <div class="pager">
-  <a class="pbtn ghost" href="index.html?v=2026093001">&#8592; Dashboard</a>
+  <a class="pbtn ghost" href="index.html?v=2026102902">&#8592; Dashboard</a>
   <span></span>
 </div>
 
 <footer>
   <div>SF Knowledge Hub &middot; Terraform: Intermediate to Advanced &middot; Certification</div>
-  <div>build 2026093001</div>
+  <div>build 2026102902</div>
 </footer>
 
 </div>
@@ -599,7 +599,8 @@ terraform apply tfplan          # copy this output into box 2</pre>
   function submitLab(plan, apply){
     var t = stamp();
     var lab = { planOutput: plan, applyOutput: apply, submittedOn: t.date, submittedAt: t.time };
-    var o = lsRead(); o.lab = { submittedOn: t.date, submittedAt: t.time }; lsWrite(o);
+    var o = lsRead(); var prevReview = (o.lab && o.lab.review) || (courseObj.lab && courseObj.lab.review) || null;
+    o.lab = { submittedOn: t.date, submittedAt: t.time, review: prevReview }; lsWrite(o);
     if (!ready) return Promise.reject(new Error("offline"));
     var update = base(); update.courses[CP_COURSE_ID] = { lab: lab };
     courseObj.lab = lab;
@@ -649,6 +650,24 @@ terraform apply tfplan          # copy this output into box 2</pre>
     });
   }
 
+  /* Graded lab status for the learner, using the admin review saved by the
+     SF Knowledge Hub at lab.review = { status, comment, reviewedBy, reviewedAt }.
+     state: none | waiting | approved | rework | resubmitted                  */
+  function labView(lab){
+    if (!lab || !lab.submittedOn) return { state: "none" };
+    var r = lab.review || null;
+    var p = function(n){ return String(n).padStart(2,"0"); };
+    var revT = r && r.reviewedAt ? Date.parse(r.reviewedAt) : NaN;
+    var revD = isNaN(revT) ? "" : (function(d){ return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); })(new Date(revT));
+    var subT = Date.parse(lab.submittedOn + "T" + (lab.submittedAt || "00:00:00"));
+    var v = { submittedOn: lab.submittedOn, submittedAt: lab.submittedAt || "", reviewedOn: revD,
+              comment: (r && r.comment) || "" };
+    if (!r || !r.status) { v.state = "waiting"; return v; }
+    if (!isNaN(subT) && !isNaN(revT) && subT > revT) { v.state = "resubmitted"; return v; }
+    v.state = r.status === "approved" ? "approved" : (r.status === "needsRework" ? "rework" : "waiting");
+    return v;
+  }
+
   /* ---- Boot ------------------------------------------------------------ */
   async function start(u, moduleKey, onState){
     user = u;
@@ -681,7 +700,8 @@ terraform apply tfplan          # copy this output into box 2</pre>
       var o = lsRead();
       o.modules = Object.assign({}, local.modules || {}, courseObj.modules || {});
       if (courseObj.lab) {
-        o.lab = { submittedOn: courseObj.lab.submittedOn, submittedAt: courseObj.lab.submittedAt };
+        o.lab = { submittedOn: courseObj.lab.submittedOn, submittedAt: courseObj.lab.submittedAt,
+                  review: courseObj.lab.review || null };
       }
       if (examObj) {
         var le = o.exam || {};
@@ -768,6 +788,7 @@ terraform apply tfplan          # copy this output into box 2</pre>
     submitLab: submitLab,
     recordExam: recordExam,
     labRemote: function(){ return courseObj.lab || null; },
+    labView: labView,
     examRemote: function(){ return examObj; },
     isReady: function(){ return ready; },
     gateKey: GK,
@@ -826,10 +847,21 @@ terraform apply tfplan          # copy this output into box 2</pre>
     else { btn.textContent = 'Start attempt ' + (ei.used + 1); btn.disabled = !canStart; if (!canStart) btn.textContent = 'Exam closed'; }
 
     /* Lab status */
-    var lt;
-    if (!labDone) lt = 'Not submitted.';
-    else lt = 'Submitted on ' + (lab.submittedOn || '') + (lab.submittedAt ? ' at ' + lab.submittedAt : '') + '. You can submit again to replace it.';
+    var lv = P.labView(lab), lt, box = 'verify', next = '';
+    var when = function(d, t){ return d + (t ? ' at ' + t : ''); };
+    if (lv.state === 'none') lt = 'Not submitted.';
+    else if (lv.state === 'waiting') lt = 'Submitted on ' + when(lv.submittedOn, lv.submittedAt) + '. Waiting for review.';
+    else if (lv.state === 'approved') { lt = 'Approved on ' + lv.reviewedOn + '.'; box = 'good'; }
+    else if (lv.state === 'rework') { lt = 'Needs rework (reviewed on ' + lv.reviewedOn + ').'; box = 'caution'; next = 'Fix the lab and submit again.'; }
+    else lt = 'Submitted again on ' + when(lv.submittedOn, lv.submittedAt) + '. Waiting for a new review.';
     $('labstatustext').textContent = lt;
+    $('labstatus').className = 'callout ' + box;
+    var showComment = (lv.state === 'approved' || lv.state === 'rework' || lv.state === 'resubmitted') && lv.comment;
+    $('labcomment').hidden = !showComment;
+    $('labcomment').textContent = showComment ? (lv.state === 'resubmitted' ? 'Earlier reviewer\u2019s message: ' : 'Reviewer\u2019s message: ') + lv.comment : '';
+    $('labnext').hidden = !next; $('labnext').textContent = next;
+    /* Once the lab is approved there is nothing to submit again. */
+    $('labform').hidden = lv.state === 'approved';
     if (labDone) $('labsubmit').textContent = 'Submit again';
   }
 
