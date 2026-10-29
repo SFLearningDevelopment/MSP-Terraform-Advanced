@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026102902 -->
+<!-- build: 2026102903 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -129,7 +129,7 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
 <body>
 <header class="masthead">
   <div class="wrap">
-    <p class="crumb"><span id="who" class="who"></span><a class="back" href="index.html?v=2026102902">&#8592; Dashboard</a> &middot; SF Knowledge Hub &middot; Terraform: Intermediate to Advanced</p>
+    <p class="crumb"><span id="who" class="who"></span><a class="back" href="index.html?v=2026102903">&#8592; Dashboard</a> &middot; SF Knowledge Hub &middot; Terraform: Intermediate to Advanced</p>
     <p><span class="chip">Course 2 certification</span></p>
     <h1>Certification: exam and graded lab</h1>
     <p class="deck">Pass the exam and submit the graded lab. You can do the two parts in either order.</p>
@@ -152,7 +152,7 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
 <div class="orient" id="locked" hidden>
   <h2>Finish all eight modules first</h2>
   <p>The certification opens when every module is marked complete. You have <span id="lockcount">0</span> of 8 done.</p>
-  <p><a class="pbtn" href="index.html?v=2026102902">Back to the dashboard</a></p>
+  <p><a class="pbtn" href="index.html?v=2026102903">Back to the dashboard</a></p>
 </div>
 
 <div id="content" hidden>
@@ -256,21 +256,29 @@ terraform apply tfplan          # copy this output into box 2</pre>
       <textarea id="labplan" rows="12" spellcheck="false" placeholder="Paste the full output of terraform plan -out=tfplan here"></textarea>
       <h3>2. Output of terraform apply</h3>
       <textarea id="labapply" rows="12" spellcheck="false" placeholder="Paste the full output of terraform apply tfplan here"></textarea>
-      <div class="gactions" style="margin-top:14px"><button class="pbtn" id="labsubmit" type="button">Submit for review</button><span class="gstate" id="labmsg"></span></div>
     </div>
+    <div id="evform">
+      <h3>3. Evidence (optional)</h3>
+      <p class="gstate">Add a short note and one screenshot, for example the web page loading at <code>web_url</code> or the result of <code>terraform destroy</code>. You can add or change this at any time, even after your lab is approved.</p>
+      <textarea id="evnote" rows="4" maxlength="2000" spellcheck="true" placeholder="For example: Opened web_url and saw the page. Ran terraform destroy: 9 destroyed."></textarea>
+      <div class="evpick"><label class="pbtn ghost" for="evfile">Choose a screenshot</label><input type="file" id="evfile" accept="image/*" hidden><span class="gstate" id="evfilemsg"></span></div>
+      <div id="evprev" hidden><img id="evimg" alt="Your evidence screenshot"><a href="#" id="evremove">Remove</a></div>
+      <div class="gactions" id="evactions" hidden><button class="pbtn ghost" id="evsave" type="button">Save evidence</button><span class="gstate" id="evmsg"></span></div>
+    </div>
+    <div class="gactions" id="labactions" style="margin-top:14px"><button class="pbtn" id="labsubmit" type="button">Submit for review</button><span class="gstate" id="labmsg"></span></div>
   </div>
 </section>
 
 </div>
 
 <div class="pager">
-  <a class="pbtn ghost" href="index.html?v=2026102902">&#8592; Dashboard</a>
+  <a class="pbtn ghost" href="index.html?v=2026102903">&#8592; Dashboard</a>
   <span></span>
 </div>
 
 <footer>
   <div>SF Knowledge Hub &middot; Terraform: Intermediate to Advanced &middot; Certification</div>
-  <div>build 2026102902</div>
+  <div>build 2026102903</div>
 </footer>
 
 </div>
@@ -284,6 +292,12 @@ terraform apply tfplan          # copy this output into box 2</pre>
     padding:10px 12px;background:#FCFDFE;color:var(--ink);resize:vertical}
   textarea:focus{outline:none;border-color:var(--level)}
   textarea:disabled{background:var(--paper);color:var(--ink-2)}
+  .evpick{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0}
+  .evpick label.pbtn{cursor:pointer;padding:9px 18px;font-size:14px}
+  #evactions[hidden],#labactions[hidden]{display:none}
+  #evprev{margin:0 0 14px}
+  #evprev img{display:block;max-width:100%;max-height:360px;border:1px solid var(--rule);border-radius:6px;margin:0 0 6px}
+  #evprev a{font-family:var(--sans);font-size:13px}
   .score{font-family:var(--sans);font-size:26px;font-weight:660;margin:0 0 6px}
   .score.pass{color:var(--ok)} .score.fail{color:var(--caution)}
 </style>
@@ -596,15 +610,34 @@ terraform apply tfplan          # copy this output into box 2</pre>
   }
 
   /* Graded lab: the pasted plan and apply output, stored on the course object. */
-  function submitLab(plan, apply){
+  function submitLab(plan, apply, evidence){
     var t = stamp();
     var lab = { planOutput: plan, applyOutput: apply, submittedOn: t.date, submittedAt: t.time };
+    if (evidence) lab.evidence = evidenceRecord(evidence);
     var o = lsRead(); var prevReview = (o.lab && o.lab.review) || (courseObj.lab && courseObj.lab.review) || null;
     o.lab = { submittedOn: t.date, submittedAt: t.time, review: prevReview }; lsWrite(o);
     if (!ready) return Promise.reject(new Error("offline"));
     var update = base(); update.courses[CP_COURSE_ID] = { lab: lab };
-    courseObj.lab = lab;
+    courseObj.lab = Object.assign({}, courseObj.lab || {}, lab);
     return fs.setDoc(cpRef, update, { merge: true });
+  }
+
+  /* Lab evidence: one note and one screenshot (a compressed JPEG data URL),
+     stored at lab.evidence. Saving again replaces both. Not kept in
+     localStorage, because the screenshot is too large for it.           */
+  function evidenceRecord(ev){
+    var t = stamp();
+    return { note: ev.note || "", image: ev.image || null,
+             savedOn: t.date, savedAt: t.time, savedIso: new Date().toISOString() };
+  }
+  function saveEvidence(ev){
+    if (!ready) return Promise.reject(new Error("offline"));
+    var rec = evidenceRecord(ev);
+    var update = base(); update.courses[CP_COURSE_ID] = { lab: { evidence: rec } };
+    return fs.setDoc(cpRef, update, { merge: true }).then(function(){
+      courseObj.lab = Object.assign({}, courseObj.lab || {}, { evidence: rec });
+      return rec;
+    });
   }
 
   /* Exam attempt: one attempt document + best-attempt summary. */
@@ -789,6 +822,7 @@ terraform apply tfplan          # copy this output into box 2</pre>
     recordExam: recordExam,
     labRemote: function(){ return courseObj.lab || null; },
     labView: labView,
+    saveEvidence: saveEvidence,
     examRemote: function(){ return examObj; },
     isReady: function(){ return ready; },
     gateKey: GK,
@@ -862,6 +896,8 @@ terraform apply tfplan          # copy this output into box 2</pre>
     $('labnext').hidden = !next; $('labnext').textContent = next;
     /* Once the lab is approved there is nothing to submit again. */
     $('labform').hidden = lv.state === 'approved';
+    $('labactions').hidden = lv.state === 'approved';
+    paintEvidence(lv.state !== 'none');
     if (labDone) $('labsubmit').textContent = 'Submit again';
   }
 
@@ -980,6 +1016,72 @@ terraform apply tfplan          # copy this output into box 2</pre>
     $('exresult').innerHTML = h; $('exresult').hidden = false;
   }
 
+  /* ---------- lab evidence ---------- */
+  var ev = { note: '', image: null, dirty: false };
+  var EV_MAX = 400000;            /* data URL length, about 300 KB */
+  function paintEvidence(submitted){
+    var re = (P.labRemote() || {}).evidence || null;
+    if (!ev.dirty && re) { ev.note = re.note || ''; ev.image = re.image || null; $('evnote').value = ev.note; }
+    $('evprev').hidden = !ev.image;
+    if (ev.image) $('evimg').src = ev.image; else $('evimg').removeAttribute('src');
+    $('evactions').hidden = !submitted;
+    if (!ev.dirty && $('evmsg').getAttribute('data-busy') !== '1')
+      $('evmsg').textContent = re && re.savedOn ? 'Last saved on ' + re.savedOn + (re.savedAt ? ' at ' + re.savedAt : '') + '.' : '';
+  }
+  function shrinkImage(file){
+    return new Promise(function(resolve, reject){
+      var fr = new FileReader();
+      fr.onerror = function(){ reject(new Error('read')); };
+      fr.onload = function(){
+        var img = new Image();
+        img.onerror = function(){ reject(new Error('image')); };
+        img.onload = function(){
+          var w = Math.min(1200, img.naturalWidth || img.width), url = '';
+          for (var round = 0; round < 6; round++) {
+            var h = Math.round((img.naturalHeight || img.height) * w / (img.naturalWidth || img.width));
+            var c = document.createElement('canvas'); c.width = w; c.height = h;
+            var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(img, 0, 0, w, h);
+            for (var q = 0.8; q >= 0.45; q -= 0.1) { url = c.toDataURL('image/jpeg', q); if (url.length <= EV_MAX) return resolve(url); }
+            w = Math.round(w * 0.8);
+          }
+          reject(new Error('size'));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  function pickEvidence(){
+    var f = $('evfile').files && $('evfile').files[0], m = $('evfilemsg');
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { m.textContent = 'Choose an image file, such as a PNG or JPG screenshot.'; $('evfile').value = ''; return; }
+    if (f.size > 15 * 1024 * 1024) { m.textContent = 'That image is too large. Choose one under 15 MB.'; $('evfile').value = ''; return; }
+    m.textContent = 'Preparing the screenshot…';
+    shrinkImage(f).then(function(url){
+      ev.image = url; ev.dirty = true; m.textContent = '';
+      $('evimg').src = url; $('evprev').hidden = false; $('evmsg').textContent = 'Not saved yet.';
+    }).catch(function(){ m.textContent = 'That screenshot could not be used. Try a different image.'; })
+      .then(function(){ $('evfile').value = ''; });
+  }
+  function removeEvidenceImage(e){
+    e.preventDefault();
+    ev.image = null; ev.dirty = true; $('evprev').hidden = true; $('evimg').removeAttribute('src');
+    $('evmsg').textContent = 'Not saved yet.';
+  }
+  function saveEvidenceNow(){
+    var m = $('evmsg');
+    ev.note = ($('evnote').value || '').trim();
+    if (!online) { m.textContent = 'You need to be online to save evidence.'; return; }
+    if (!ev.note && !ev.image) { m.textContent = 'Add a note or a screenshot first.'; return; }
+    $('evsave').disabled = true; m.setAttribute('data-busy', '1'); m.textContent = 'Saving…';
+    P.saveEvidence({ note: ev.note, image: ev.image }).then(function(){
+      ev.dirty = false; m.removeAttribute('data-busy'); paint(P.read()); m.textContent = 'Evidence saved. The reviewer can see it now.';
+    }).catch(function(e){
+      console.error('[lab] evidence save failed', e); m.removeAttribute('data-busy');
+      m.textContent = 'The evidence did not reach your SF record. Check your connection and try again.';
+    }).then(function(){ $('evsave').disabled = false; });
+  }
+
   /* ---------- lab ---------- */
   function submitLab(){
     var plan = ($('labplan').value || '').trim(), apply = ($('labapply').value || '').trim();
@@ -991,7 +1093,10 @@ terraform apply tfplan          # copy this output into box 2</pre>
     if (!/Apply complete!/.test(apply)) { m.textContent = 'Box 2 does not look like a finished apply. It should include "Apply complete!".'; return; }
     if (!confirm('Submit your lab for review?')) return;
     $('labsubmit').disabled = true; m.textContent = 'Submitting\u2026';
-    P.submitLab(plan, apply).then(function(){
+    ev.note = ($('evnote').value || '').trim();
+    var withEv = ev.dirty && (ev.note || ev.image) ? { note: ev.note, image: ev.image } : null;
+    P.submitLab(plan, apply, withEv).then(function(){
+      if (withEv) ev.dirty = false;
       m.textContent = 'Submitted. An admin will review it.';
     }).catch(function(e){
       console.error('[lab] submit failed', e);
@@ -1009,6 +1114,10 @@ terraform apply tfplan          # copy this output into box 2</pre>
     $('exstart').addEventListener('click', startExam);
     $('exsubmit').addEventListener('click', function(){ submitExam(false); });
     $('labsubmit').addEventListener('click', submitLab);
+    $('evfile').addEventListener('change', pickEvidence);
+    $('evremove').addEventListener('click', removeEvidenceImage);
+    $('evsave').addEventListener('click', saveEvidenceNow);
+    $('evnote').addEventListener('input', function(){ ev.dirty = true; $('evmsg').textContent = 'Not saved yet.'; });
 
     await P.start(user, null, function(state, isOnline){ online = !!isOnline; paint(state); });
 
