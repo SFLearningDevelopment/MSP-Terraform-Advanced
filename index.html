@@ -752,8 +752,7 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
     function paint(state, online){
       var done = KEYS.filter(function(k){ return P.isDone(state, k); }).length;
       document.getElementById('fill').style.width = (done / KEYS.length) * 100 + '%';
-      document.getElementById('count').textContent = done + ' of ' + KEYS.length + ' modules complete'
-        + (done === KEYS.length ? ' \u00b7 certification open' : '');
+      document.getElementById('count').textContent = done + ' of ' + KEYS.length + ' modules complete';
       var gates = gateRead(user.uid);
 
       KEYS.forEach(function(k){
@@ -801,6 +800,15 @@ footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:18px;
       else if (lvc.state === 'rework') { cs.textContent = 'Lab needs rework'; cs.classList.add('bad'); }
       else if ((ex && ex.attempts) || labDone) { cs.textContent = 'In progress'; cs.classList.add('prog'); }
       else cs.textContent = 'Open';
+
+      /* Top line: follows the certification row once all modules are done. */
+      if (allDone) {
+        var top = examPassed && lvc.state === 'approved' ? 'certification complete'
+                : lvc.state === 'rework' ? 'lab needs rework'
+                : ((ex && ex.attempts) || labDone) ? 'certification in progress'
+                : 'certification open';
+        document.getElementById('count').textContent = done + ' of ' + KEYS.length + ' modules complete \u00b7 ' + top;
+      }
 
       /* Resume button */
       var next = null;
