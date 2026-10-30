@@ -864,9 +864,12 @@ terraform apply tfplan          # copy this output into box 2</pre>
     var ei = examInfo(state);
     var lab = state.lab || null;
     var labDone = !!(lab && lab.submittedOn);
-    var parts = (ei.passed ? 1 : 0) + (labDone ? 1 : 0);
+    var lvTop = P.labView(lab);
+    var labTop = { none: 'not submitted', waiting: 'waiting for review', resubmitted: 'waiting for review',
+                   rework: 'needs rework', approved: 'approved' }[lvTop.state] || 'not submitted';
+    var parts = (ei.passed ? 1 : 0) + (lvTop.state === 'approved' ? 1 : 0);
     $('fill').style.width = (parts / 2) * 100 + '%';
-    $('count').textContent = 'Exam: ' + (ei.passed ? 'passed' : 'not passed yet') + ' \u00b7 Lab: ' + (labDone ? 'submitted' : 'not submitted');
+    $('count').textContent = 'Exam: ' + (ei.passed ? 'passed' : 'not passed yet') + ' \u00b7 Lab: ' + labTop;
 
     /* Exam status */
     var st;
